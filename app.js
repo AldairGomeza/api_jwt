@@ -2,7 +2,12 @@ const express = require ("express");
 const jwt = require("jsonwebtoken");
 const dbconnect = require("./config");
 const ModelUser = require("./userModel");
+const WebSocket = require("ws");
+
+
 const app = express();
+const server = require("http").createServer(app); 
+const wss = new WebSocket.Server({ server }); 
 
 const router = express.Router();
 const JWT_SECRET = "your_jwt_secret"; 
@@ -79,6 +84,22 @@ router.delete("/:id", async (req, res)=> {
     const respuesta = await ModelUser.deleteOne({_id: id })
     res.send(respuesta)
 })
+
+wss.on("connection", (ws) => {
+    console.log("Nuevo cliente conectado");
+
+    ws.send("Bienvenido al servidor WebSocket!");
+
+    ws.on("message", (message) => {
+        console.log(`Mensaje recibido: ${message}`);    
+        ws.send(`Mensaje recibido: ${message}`);
+    });
+
+    ws.on("close", () => {
+        console.log("Cliente desconectado");
+    }); 
+});
+
 
 app.use(express.json())
 app.use(router)
